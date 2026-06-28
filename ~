@@ -1,0 +1,9 @@
+.terraform/
+*.log
+*.pem
+.vscode/
+.idea/
+# Terraform
+*.tfstate
+*.tfstate.*
+crash.log
