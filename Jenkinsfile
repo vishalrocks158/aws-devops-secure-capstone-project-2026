@@ -19,40 +19,46 @@ pipeline {
 
                     echo "Repository Contents:"
                     ls -la
+
+                    echo "Terraform Directory:"
+                    ls -la terraform
                 '''
             }
         }
 
-stage('Terraform Init') {
-    steps {
-        dir('terraform') {
-            sh 'terraform init'
+        stage('Terraform Init') {
+            steps {
+                dir('terraform') {
+                    sh 'terraform init'
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                dir('terraform') {
+                    sh 'terraform validate'
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                dir('terraform') {
+                    sh 'terraform plan'
+                }
+            }
+        }
+
+        stage('Deployment Trigger') {
+            steps {
+                echo 'Terraform validation and planning completed successfully.'
+            }
         }
     }
-}
 
-stage('Terraform Validate') {
-    steps {
-        dir('terraform') {
-            sh 'terraform validate'
-        }
-    }
-}
-
-stage('Terraform Plan') {
-    steps {
-        dir('terraform') {
-            sh 'terraform plan'
-        }
-    }
-}
-
-stage('Deployment Trigger') {
-    steps {
-        echo 'Terraform validation completed.'
-    }
-}
     post {
+
         always {
             echo 'Pipeline execution completed.'
         }
@@ -66,3 +72,4 @@ stage('Deployment Trigger') {
         }
     }
 }
+
