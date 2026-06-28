@@ -23,13 +23,35 @@ pipeline {
             }
         }
 
-        stage('Deployment Trigger') {
-            steps {
-                echo 'Deployment trigger stage executed successfully.'
-            }
+stage('Terraform Init') {
+    steps {
+        dir('terraform') {
+            sh 'terraform init'
         }
     }
+}
 
+stage('Terraform Validate') {
+    steps {
+        dir('terraform') {
+            sh 'terraform validate'
+        }
+    }
+}
+
+stage('Terraform Plan') {
+    steps {
+        dir('terraform') {
+            sh 'terraform plan'
+        }
+    }
+}
+
+stage('Deployment Trigger') {
+    steps {
+        echo 'Terraform validation completed.'
+    }
+}
     post {
         always {
             echo 'Pipeline execution completed.'
