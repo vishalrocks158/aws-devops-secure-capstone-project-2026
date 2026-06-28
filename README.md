@@ -76,3 +76,20 @@ Implement Version Control and Continuous Integration using GitHub and Jenkins.
 
 \--> Deployment Trigger
 
+
+## Task 2 – Infrastructure as Code (Terraform)
+
+### Completed Activities
+
+- Installed and configured Terraform
+- Configured AWS Provider
+- Created reusable Terraform variables
+- Provisioned a custom VPC
+- Created a Public Subnet
+- Configured an Internet Gateway
+- Configured Route Tables and Associations
+- Created a Security Group with restricted SSH access
+- Created an IAM Role and Instance Profile
+- Provisioned an EC2 Instance
+- Configured Terraform Outputs
+- Successfully executed terraform init, plan, and apply
