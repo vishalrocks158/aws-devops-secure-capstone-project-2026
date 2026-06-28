@@ -2,19 +2,20 @@ pipeline {
     agent any
 
     environment {
-        AWS_DEFAULT_REGION = 'ap-south-1'
+        AWS_DEFAULT_REGION = "ap-south-1"
     }
 
     options {
         timestamps()
         disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
     stages {
 
         stage('Code Checkout') {
             steps {
-                echo "Checking out source code from GitHub..."
+                echo 'Checking out source code from GitHub...'
 
                 checkout([
                     $class: 'GitSCM',
@@ -29,22 +30,30 @@ pipeline {
 
         stage('Build Validation') {
             steps {
-                echo "Validating project structure..."
-
                 sh '''
-                pwd
-                ls -la
-                ls -la terraform
+                    echo "Current Directory:"
+                    pwd
+
+                    echo "Repository Contents:"
+                    ls -la
+
+                    echo "Terraform Directory:"
+                    ls -la terraform
                 '''
             }
         }
 
         stage('Terraform Init') {
             steps {
-                dir('terraform') {
-                    sh '''
-                    terraform init
-                    '''
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws']
+                ]) {
+                    dir('terraform') {
+                        sh '''
+                            terraform init
+                        '''
+                    }
                 }
             }
         }
@@ -53,7 +62,7 @@ pipeline {
             steps {
                 dir('terraform') {
                     sh '''
-                    terraform fmt -check
+                        terraform fmt -check
                     '''
                 }
             }
@@ -61,60 +70,64 @@ pipeline {
 
         stage('Terraform Validate') {
             steps {
-                dir('terraform') {
-                    sh '''
-                    terraform validate
-                    '''
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws']
+                ]) {
+                    dir('terraform') {
+                        sh '''
+                            terraform validate
+                        '''
+                    }
                 }
             }
         }
 
         stage('Terraform Plan') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws'
-        ]]) {
-            dir('terraform') {
-                sh '''
-                terraform init
-                terraform validate
-                terraform plan -out=tfplan
-                '''
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws']
+                ]) {
+                    dir('terraform') {
+                        sh '''
+                            terraform plan -input=false -out=tfplan
+                        '''
+                    }
+                }
             }
         }
-    }
-}
 
         stage('Approval') {
             steps {
-                input message: 'Approve Terraform Deployment?'
+                input message: 'Approve Terraform Apply?', ok: 'Deploy'
             }
         }
 
-  stage('Terraform Apply') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws'
-        ]]) {
-            dir('terraform') {
-                sh '''
-                terraform apply -auto-approve tfplan
-                '''
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws']
+                ]) {
+                    dir('terraform') {
+                        sh '''
+                            terraform apply -auto-approve tfplan
+                        '''
+                    }
+                }
             }
         }
     }
-}
 
     post {
 
         success {
-            echo "Terraform deployment completed successfully."
+            echo 'Terraform Infrastructure Provisioned Successfully.'
         }
 
         failure {
-            echo "Terraform pipeline failed."
+            echo 'Pipeline Failed. Please check console logs.'
         }
 
         always {
@@ -122,4 +135,3 @@ pipeline {
         }
     }
 }
-
