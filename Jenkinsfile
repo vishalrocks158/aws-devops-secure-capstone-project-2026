@@ -1,27 +1,41 @@
+```groovy
 pipeline {
     agent any
+
+    environment {
+        AWS_DEFAULT_REGION = 'ap-south-1'
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
 
     stages {
 
         stage('Code Checkout') {
             steps {
-                echo 'Checking out source code from GitHub...'
-                checkout scm
+                echo "Checking out source code from GitHub..."
+
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/vishalrocks158/aws-devops-secure-capstone-project-2026.git',
+                        credentialsId: 'github-pat'
+                    ]]
+                ])
             }
         }
 
         stage('Build Validation') {
             steps {
-                echo 'Validating project structure...'
+                echo "Validating project structure..."
+
                 sh '''
-                    echo "Current Directory:"
-                    pwd
-
-                    echo "Repository Contents:"
-                    ls -la
-
-                    echo "Terraform Directory:"
-                    ls -la terraform
+                pwd
+                ls -la
+                ls -la terraform
                 '''
             }
         }
@@ -29,7 +43,19 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 dir('terraform') {
-                    sh 'terraform init'
+                    sh '''
+                    terraform init
+                    '''
+                }
+            }
+        }
+
+        stage('Terraform Format Check') {
+            steps {
+                dir('terraform') {
+                    sh '''
+                    terraform fmt -check
+                    '''
                 }
             }
         }
@@ -37,7 +63,9 @@ pipeline {
         stage('Terraform Validate') {
             steps {
                 dir('terraform') {
-                    sh 'terraform validate'
+                    sh '''
+                    terraform validate
+                    '''
                 }
             }
         }
@@ -45,31 +73,43 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 dir('terraform') {
-                    sh 'terraform plan'
+                    sh '''
+                    terraform plan -out=tfplan
+                    '''
                 }
             }
         }
 
-        stage('Deployment Trigger') {
+        stage('Approval') {
             steps {
-                echo 'Terraform validation and planning completed successfully.'
+                input message: 'Approve Terraform Deployment?'
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir('terraform') {
+                    sh '''
+                    terraform apply -auto-approve tfplan
+                    '''
+                }
             }
         }
     }
 
     post {
 
-        always {
-            echo 'Pipeline execution completed.'
-        }
-
         success {
-            echo 'Build Successful.'
+            echo "Terraform deployment completed successfully."
         }
 
         failure {
-            echo 'Build Failed.'
+            echo "Terraform pipeline failed."
+        }
+
+        always {
+            cleanWs()
         }
     }
 }
-
+```
