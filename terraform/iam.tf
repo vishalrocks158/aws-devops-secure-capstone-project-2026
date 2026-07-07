@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ec2_role" {
-  name = "DevOpsEC2Role"
+  name = "DevOpsEC2Role-Jenkins"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -18,7 +18,7 @@ resource "aws_iam_role" "ec2_role" {
   })
 
   tags = {
-    Name = "DevOpsEC2Role"
+    Name = "DevOpsEC2Role-Jenkins"
   }
 }
 
@@ -28,6 +28,6 @@ resource "aws_iam_role_policy_attachment" "ssm_policy" {
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "DevOpsEC2Profile"
+  name = "DevOpsEC2Profile-Jenkins"
   role = aws_iam_role.ec2_role.name
 }
