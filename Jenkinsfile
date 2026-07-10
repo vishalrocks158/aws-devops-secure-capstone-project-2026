@@ -159,8 +159,6 @@ stage('Terraform Plan') {
             echo 'Pipeline Failed. Please check console logs.'
         }
 
-        always {
-            cleanWs()
-        }
+        
     }
 }
