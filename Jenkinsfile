@@ -87,28 +87,32 @@ stage('Checkov Security Scan') {
     steps {
         dir('terraform') {
             sh '''
-                echo "Running Checkov Security Scan..."
-                source /opt/checkov/checkov-env/bin/activate
-                checkov -d .
+                echo "========================================="
+                echo "Running Checkov Security Scan"
+                echo "========================================="
+
+                /opt/checkov/venv/bin/checkov -d .
             '''
         }
     }
 }
-
-stage('OPA Policy Check') {
+stage('OPA Policy Validation') {
     steps {
         dir('security/opa') {
             sh '''
-                echo "Running OPA Policy Validation..."
-                opa eval \
+                echo "========================================="
+                echo "Running OPA Policy Validation"
+                echo "========================================="
+
+                /usr/local/bin/opa eval \
                 -d policy.rego \
                 -i input.json \
                 "data.terraform.deny"
             '''
         }
     }
-}
-        stage('Terraform Plan') {
+}        
+stage('Terraform Plan') {
             steps {
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding',
