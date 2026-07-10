@@ -83,6 +83,31 @@ pipeline {
             }
         }
 
+stage('Checkov Security Scan') {
+    steps {
+        dir('terraform') {
+            sh '''
+                echo "Running Checkov Security Scan..."
+                source /opt/checkov/checkov-env/bin/activate
+                checkov -d .
+            '''
+        }
+    }
+}
+
+stage('OPA Policy Check') {
+    steps {
+        dir('security/opa') {
+            sh '''
+                echo "Running OPA Policy Validation..."
+                opa eval \
+                -d policy.rego \
+                -i input.json \
+                "data.terraform.deny"
+            '''
+        }
+    }
+}
         stage('Terraform Plan') {
             steps {
                 withCredentials([
