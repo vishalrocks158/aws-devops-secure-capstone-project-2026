@@ -22,7 +22,7 @@ pipeline {
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[
                         url: 'https://github.com/vishalrocks158/aws-devops-secure-capstone-project-2026.git',
-                        credentialsId: 'github-pat'
+                        
                     ]]
                 ])
             }
