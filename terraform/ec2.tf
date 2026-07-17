@@ -21,7 +21,7 @@ resource "aws_instance" "devops_server" {
 
   # Encrypt root EBS volume
   root_block_device {
-    encrypted = true
+    encrypted   = true
     volume_type = "gp3"
   }
 
